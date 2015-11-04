@@ -61,11 +61,6 @@ the bucket data region location, please see [Data Regions](https://github.com/al
 #### options.objectGen
 Type: `Function`
 
-#### options.mime, options.meta, options.headers
-
-Optional. If set, they will be passed to [ali-oss sdk's put function](https://github.com/aliyun/oss-nodejs-sdk#putname-file-options)
-
-
 Default:
 ```js
 function(dest, src){
@@ -74,6 +69,11 @@ function(dest, src){
 ```
 A function that return a oss objectName by dest and src. Default return grunt task files' dest + files' name.
 There is another [example](https://github.com/marshalYuan/grunt-oss-up/issues/1)
+
+#### options.mime, options.meta, options.headers
+
+Optional. If set, they will be passed to [ali-oss sdk's put function](https://github.com/aliyun/oss-nodejs-sdk#putname-file-options)
+
 ### Usage Examples
 
 #### Default Options
@@ -86,7 +86,8 @@ grunt.initConfig({
 	  options: {
 		accessKeyId: your_accessKeyId,
 		accessKeySecret: your_accessKeySecret,
-		bucket: your_bucket_name
+		bucket: your_bucket_name,
+        region: your_region
 	  },
 	  files: {
 	    'myoss/js': ['src/main.js', 'src/other.js', 'src/js/*.js']
