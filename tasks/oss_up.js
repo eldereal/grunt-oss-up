@@ -12,18 +12,19 @@ module.exports = function(grunt) {
 
 	// Please see the Grunt documentation for more information regarding task
 	// creation: http://gruntjs.com/creating-tasks
-	var OSS = require('oss-client'),
+	var OSS = require('ali-sdk').oss,
 		async = require('async'),
 		path = require('path'),
 		fs = require('fs'),
+        co = require('co'),
 		chalk = require('chalk');
-		
+
 	grunt.registerMultiTask('oss', 'A grunt tool for uploading static file to aliyun oss.', function() {
-		var done = this.async(); 
+		var done = this.async();
 		// Merge task-specific and/or target-specific options with these defaults.
 		var options = this.options({
 			/**
-             * @name objectGen --return a aliyun oss object name 
+             * @name objectGen --return a aliyun oss object name
 			 *					  default return grunt task files' dest + files' name
              * @param dest  --grunt task files' dest
              * @param src  --grunt task files' src
@@ -32,16 +33,17 @@ module.exports = function(grunt) {
 				return [dest, path.basename(src)].join('\/');
 			}
 		});
-		
-		if(!options.accessKeyId || !options.accessKeySecret || !options.bucket){
-			grunt.fail.fatal('accessKeyId, accessKeySecret and bucket are all required!');
+
+		if(!options.accessKeyId || !options.accessKeySecret || !options.bucket || !options.region){
+			grunt.fail.fatal('accessKeyId, accessKeySecret, bucket and region are all required!');
 		}
-		var option = {
-				accessKeyId: options.accessKeyId,
-				accessKeySecret: options.accessKeySecret
-			};
 		//creat a new oss-client
-		var	oss = new OSS.OssClient(option),
+		var	oss = new OSS({
+			accessKeyId: options.accessKeyId,
+			accessKeySecret: options.accessKeySecret,
+            bucket: options.bucket,
+            region: options.region
+		}),
 			uploadQue = [];
 		// Iterate over all specified file groups.
 		this.files.forEach(function(f) {
@@ -56,22 +58,30 @@ module.exports = function(grunt) {
 				}
 			}).map(function(filepath) {
 				// return an oss object.
-				return {
-					bucket: options.bucket,
+				var o = {
 					object: options.objectGen(f.dest, filepath),
-					srcFile: filepath
+					srcFile: filepath,
+                    options: {}
 				};
-
+                if(options.mime){
+                    o.options.mime = options.mime;
+                }
+                if(options.meta){
+                    o.options.meta = options.meta;
+                }
+                if(options.headers){
+                    o.options.headers = options.headers;
+                }
 			});
 			objects.forEach(function(o) {
-				uploadQue.push(o);	
-			});	
+				uploadQue.push(o);
+			});
 		});
 		var uploadTasks = [];
 		uploadQue.forEach(function(o) {
-			uploadTasks.push(makeUploadTask(o));	
+			uploadTasks.push(makeUploadTask(o));
 		});
-		grunt.log.ok('Start uploading files.')
+		grunt.log.ok('Start uploading files.');
 		async.series(uploadTasks, function(error, results) {
 			if (error) {
 				grunt.fail.fatal("uploadError:"+ JSON.stringify(error));
@@ -92,11 +102,15 @@ module.exports = function(grunt) {
 					callback();
 				}else {
 					grunt.log.ok('Start uploading file '+ chalk.cyan(o.srcFile));
-					oss.putObject(o, function (error, result) {
-						callback(error, result);
-					});
-				}	
-			}
+                    co(oss.put(o.object, o.srcFile, {}))
+                    .then(function(result){
+                        callback(null, result);
+                    })
+                    .catch(function(e){
+                        callback(e);
+                    });
+				}
+			};
 		}
 	});
 };

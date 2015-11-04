@@ -53,10 +53,20 @@ Type: `String`
 
 A string value that is your aliyun oss bucket.
 
+#### options.region
+Type: `String`
+
+the bucket data region location, please see [Data Regions](https://github.com/aliyun/oss-nodejs-sdk#data-regions)
+
 #### options.objectGen
 Type: `Function`
 
-Default: 
+#### options.mime, options.meta, options.headers
+
+Optional. If set, they will be passed to [ali-oss sdk's put function](https://github.com/aliyun/oss-nodejs-sdk#putname-file-options)
+
+
+Default:
 ```js
 function(dest, src){
 	return [dest, path.basename(src)].join('\/');

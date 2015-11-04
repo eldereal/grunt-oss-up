@@ -39,8 +39,9 @@
     "gruntplugin"
   ],
   "dependencies": {
+    "ali-oss": "^3.1.2",
     "async": "^0.9.0",
     "chalk": "^0.5.1",
-    "oss-client": "~0.4.0"
+    "co": "^4.6.0"
   }
 }
