@@ -12,7 +12,7 @@ module.exports = function(grunt) {
 
 	// Please see the Grunt documentation for more information regarding task
 	// creation: http://gruntjs.com/creating-tasks
-	var OSS = require('ali-sdk').oss,
+	var OSS = require('ali-oss'),
 		async = require('async'),
 		path = require('path'),
 		fs = require('fs'),
@@ -72,6 +72,7 @@ module.exports = function(grunt) {
                 if(options.headers){
                     o.options.headers = options.headers;
                 }
+                return o;
 			});
 			objects.forEach(function(o) {
 				uploadQue.push(o);
